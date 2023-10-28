@@ -1,0 +1,69 @@
+MODULE Module1
+    CONST robtarget PFC:=[[-411.141,0.001,41.006],[0,0,1,0],[0,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget Home:=[[454.039938571,0,528.065],[0.5,0,0.866025404,0],[0,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget P1:=[[0,0,0],[0,0,1,0],[0,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget P2:=[[0,0,400],[0,0,1,0],[0,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget P3:=[[0,-160,0],[0,0.707106781,0.707106781,0],[0,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+   
+    VAR num Ax;
+    VAR num Z;
+    VAR num Bx;
+    VAR num Cx;
+    VAR num suma:=0;
+    VAR num suma1:=0;
+    VAR num piso:=1;
+    VAR num segundo:=0;
+    VAR num tercero:=0;
+    VAR num alto:=3;!maximo 11 pisos
+    VAR num cajas:=10; !maximo 10 cajas por piso   
+
+    
+    PROC main()
+       Caja_chica;
+    ENDPROC
+    
+    
+    PROC Path_10()
+        MoveL PFC,v1000,z100,GripperLN\WObj:=Workobject_cinta;
+        MoveL Home,v1000,z100,GripperLN\WObj:=wobj0;
+        MoveL P1,v1000,z100,GripperLN\WObj:=Workobject_palet;
+        MoveL P2,v1000,z100,GripperLN\WObj:=Workobject_palet;
+        MoveL P3,v1000,z100,GripperLN\WObj:=Workobject_palet;
+    ENDPROC
+   
+    PROC Caja_chica()
+         IF piso <= alto THEN
+        WHILE TestDI (DI1) DO
+            MoveLDO PFC,v100,fine,GripperLN\WObj:=Workobject_cinta,DO1,1;
+            MoveL Offs(PFC,0,0,200),v100,fine,GripperLN\WObj:=Workobject_cinta;
+            Z:= 42 * piso;
+            IF suma < 3 THEN
+                Ax:= 40 + 80 * suma;
+             MoveL Offs(P2,Ax,-30,0),v500,fine,GripperLN\WObj:=Workobject_palet;  
+             MoveLDO Offs(P1,Ax,-30,Z),v100,fine,GripperLN\WObj:=Workobject_palet,DO1,0;
+             MoveL Home,v500,fine,GripperLN\WObj:=wobj0;
+            ELSEIF suma < 6 THEN
+               Bx:= 40 + 80 * segundo;
+            MoveL Offs(P2,Bx,-90,0),v500,fine,GripperLN\WObj:=Workobject_palet;
+            MoveLDO Offs(P1,Bx,-90,Z),v100,fine,GripperLN\WObj:=Workobject_palet,DO1,0;
+            MoveL Home,v500,fine,GripperLN\WObj:=wobj0;
+            segundo := segundo +1;
+            ELSEIF suma < 10 THEN
+                Cx:= 35 + 60* tercero;
+            MoveL Offs(P2,Cx,-150,0),v500,fine,GripperLN\WObj:=Workobject_palet;
+            MoveLDO Offs(P3,Cx,0,Z),v100,fine,GripperLN\WObj:=Workobject_palet,DO1,0;
+            MoveL Home,v500,fine,GripperLN\WObj:=wobj0;
+            tercero := tercero +1;
+            ENDIF
+            suma:= suma +1;
+            IF suma = cajas THEN
+                piso := piso +1;
+                suma:=0;
+                segundo:=0;
+                tercero:=0;
+            ENDIF    
+        ENDWHILE
+        ENDIF
+        
+    ENDPROC    
+ENDMODULE

@@ -1,66 +1,39 @@
-#include <Servo.h>
+/* Este código controla una cinta transportadora mediante un driver TB6600, utilizando
+ una fotorresistencia en su entrada.
+ Los pines utilizados son el pin de paso (stepPin),
+  el pin de habilitación (enaPin), 
+  el pin de la fotorresistencia (fotoResistenciaPin) 
+  y el pin para enviar la señal al robot (robot).
+*/
+const int stepPin = 5;               // Pin para el control del paso del motor.
+const int enaPin = 8;                // Pin para habilitar o deshabilitar el motor.
+const int fotoResistenciaPin = A0;   // Pin para la lectura de la fotorresistencia.
+const int robot = 2;                 // Pin para controlar el robot.
 
-Servo myservo;  
-Servo myservo2;  
-
-const int Cerrar = 2;
-const int Abrir = 3;
-const int stepPin = 5;
-const int dirPin = 4;
-const int enPin = 8;
-const int fotoResistenciaPin = A0;
-const int robot= 6;
-
-int lectura;
-int  valorMapeado;
-
-
-int pos;   
-int pos2;
+int lectura;             // Variable para almacenar la lectura de la fotorresistencia.
+int valorMapeado;        // Variable para almacenar el valor mapeado de la lectura.
 
 void setup() {
-  pinMode(stepPin,OUTPUT);
-  pinMode(dirPin,OUTPUT);
-  pinMode(enPin,OUTPUT);
-  pinMode(robot,OUTPUT);
-  pinMode(Cerrar, INPUT);
-  pinMode(Abrir, INPUT);
-  myservo.attach(9);  
-  myservo.write(0);// (0 /45) - 20(cubo)
-  myservo2.attach(7);  
-  myservo2.write(180);// (180 / 135) - 160(cubo)
+  pinMode(stepPin, OUTPUT);      // Configura el pin de paso como salida.
+  pinMode(enaPin, OUTPUT);       // Configura el pin de habilitación como salida.
+  pinMode(robot, OUTPUT);        // Configura el pin de control del dispositivo como salida.
 }
 
 void loop() {
+  digitalWrite(enaPin, LOW);  // Habilita el motor inicialmente.
+  lectura = analogRead(fotoResistenciaPin);  // Lee el valor de la fotorresistencia.
+  valorMapeado = map(lectura, 0, 1023, 0, 255);  // Mapea el valor leído.
 
- digitalWrite(dirPin,HIGH);
- digitalWrite(enPin,LOW);
- lectura = analogRead(fotoResistenciaPin);
- valorMapeado = map(lectura, 0, 1023, 0, 255);
- digitalWrite(robot,LOW);
-       
+  digitalWrite(robot, LOW);  // Apaga el dispositivo controlado por el pin 'robot'.
 
- if(valorMapeado < 128){       //incide laser
-  digitalWrite(stepPin,HIGH);
-  delayMicroseconds(500);
-  digitalWrite(stepPin,LOW);
-  delayMicroseconds(500);
+  if (valorMapeado > 128) {  // Si incide el láser.
+    digitalWrite(stepPin, HIGH);          // Activa el paso del motor.
+    delayMicroseconds(500);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(500);
+  } else if (valorMapeado < 128) {  // Si no incide el láser.
+    digitalWrite(enaPin, HIGH);    // Deshabilita el motor.
+    digitalWrite(robot, HIGH);     // Enciende el dispositivo controlado por el pin 'robot'.
   }
-  else if(valorMapeado > 128){ // no laser
-       pos = 10;   
-       pos2 = 180;
-       digitalWrite(enPin,HIGH);
-       digitalWrite(robot,HIGH);
-       
-     if(digitalRead (2)== HIGH){  //CERRAR
-      myservo.write(20);
-      myservo2.write(160);
-     }else  if (digitalRead (3) == HIGH){ //ABRIR
-        
-        myservo.write(0);
-        myservo2.write(180);
-       
-        }
-        
-  }
-  }
+}
+
